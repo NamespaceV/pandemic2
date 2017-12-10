@@ -1,0 +1,105 @@
+<html>
+<head>
+    <script type="text/javascript" src = "jquery-3.2.1.js" > </script>
+    <script type="text/javascript">
+    $(document).ready(function(){
+        var updateBlock = function( block ){
+            var left = block.attr("cardsLeft");
+            block.find(".cardsLeft").text(left+" cards left");
+            var drawn = block.attr("cardsDrawn");
+            block.find(".cardsDrawn").text(drawn+" cards drawn");
+            
+            var totalLeft = 0;
+            block.parents(".epidemy").find(".cityblock").each(function() {
+                totalLeft += parseInt($( this ).attr("cardsLeft"));
+            });
+            block.parents(".epidemy").find(".cityblock").each(function() {
+                var bLeft = $( this ).attr("cardsLeft");
+                $( this ).find(".probability").text(parseInt(100*bLeft/totalLeft)+"%");
+            });
+            
+        }
+        var UndoDraw = function( block ){
+            block.attr("cardsLeft", parseInt(block.attr("cardsLeft"))+ 1);
+            block.attr("cardsDrawn", parseInt(block.attr("cardsDrawn"))- 1);
+            updateBlock(block);
+        }
+        var DrawCity = function( block ){
+            block.attr("cardsLeft", parseInt(block.attr("cardsLeft"))- 1);
+            block.attr("cardsDrawn", parseInt(block.attr("cardsDrawn"))+ 1);
+            updateBlock(block);
+        }
+        
+        var startingCity = function( cityName, cards ){
+            var newBlock = `
+            <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0">
+                <div class="name">
+                    <div class="cityname">[CityName]</div>
+                </div>
+                <div class="header">
+                    <div class="probability">0%</div>
+                    <button class="controlAdd">Drawn</button>
+                    <button class="controlRem">Undo</button>
+                </div>
+                <div class="display">
+                    <div class="cardsDrawn">autogen</div>
+                    <div class="cardsLeft">autogen</div>
+                </div>
+            </div>
+        `;
+            var newBlock = newBlock.replace("[CityName]", cityName);
+            newBlock = newBlock.replace("[CardsLeft]", cards);
+            $(".epidemy").append(newBlock);
+        };
+
+        startingCity("Atlanta", 3);
+        startingCity("Detroid", 1);
+        startingCity("Mumbad", 3);
+        startingCity("Kairo", 1);
+        startingCity("asdas", 4);
+        startingCity("costam", 2);
+         $(".epidemy").append("<div><button>EpidemyDrawn</button></div>");
+
+        $(".cityblock").each(function() {
+            updateBlock($( this ));
+        });
+        $(".controlRem").click(function() {
+            var block = $( this ).parents(".cityblock");
+            UndoDraw(block);
+        });
+        $(".controlAdd").click(function() {
+            var block = $( this ).parents(".cityblock");
+            DrawCity(block);
+        });
+    });
+    </script>
+    <style type="text/css">
+        .header > *, .display > *
+        {
+          display: inline-block;
+        }
+        .control:hover
+        {
+            color: #FF0000;
+            cursor: pointer;
+        }
+        .cityblock
+        {
+            border: blue;
+            border-width: 2px;
+            border-style: solid;
+            margin: 10px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="Active">
+        <div class="epidemy">
+            <h3>Starting Deck</h3>
+            <!-- autogen -->
+        </div>
+    </div>
+</body>
+    
+</html>
