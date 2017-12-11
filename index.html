@@ -30,9 +30,9 @@
             updateBlock(block);
         }
         
-        var startingCity = function( cityName, cards ){
+        var startingCity = function( cityName, color, cards ){
             var newBlock = `
-            <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0">
+            <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0" cityColor="[color]">
                 <div class="name">
                     <div class="cityname">[CityName]</div>
                 </div>
@@ -49,15 +49,16 @@
         `;
             var newBlock = newBlock.replace("[CityName]", cityName);
             newBlock = newBlock.replace("[CardsLeft]", cards);
+            newBlock = newBlock.replace("[color]", color);
             $(".epidemy").append(newBlock);
         };
 
-        startingCity("Atlanta", 3);
-        startingCity("Detroid", 1);
-        startingCity("Mumbad", 3);
-        startingCity("Kairo", 1);
-        startingCity("asdas", 4);
-        startingCity("costam", 2);
+        startingCity("Atlanta","blue", 3);
+        startingCity("Detroid","blue", 1);
+        startingCity("Mumbad","black", 3);
+        startingCity("Kairo","black", 1);
+        startingCity("asdas","yellow", 4);
+        startingCity("costam","yellow", 2);
          $(".epidemy").append("<div><button>EpidemyDrawn</button></div>");
 
         $(".cityblock").each(function() {
@@ -85,11 +86,17 @@
         }
         .cityblock
         {
-            border: blue;
+            border-color: black;
             border-width: 2px;
             border-style: solid;
             margin: 10px;
             padding: 5px;
+        }
+        .cityblock[cityColor="blue"] {
+            border-color: blue;
+        }
+        .cityblock[cityColor="yellow"] {
+            border-color: gold;
         }
     </style>
 </head>
