@@ -3,36 +3,137 @@
     <script type="text/javascript" src = "jquery-3.2.1.js" > </script>
     <script type="text/javascript">
     $(document).ready(function(){
-        var updateBlock = function( block ){
+        var redrawBlock = function( block ){
+            var leftDeep = block.attr("cardsLeftDeep");
+            block.find(".cardsLeftDeep").text(leftDeep+" left deep");
             var left = block.attr("cardsLeft");
             block.find(".cardsLeft").text(left+" cards left");
             var drawn = block.attr("cardsDrawn");
             block.find(".cardsDrawn").text(drawn+" cards drawn");
-            
+            var deepList = block.attr("cardsLeftDeep").split(",");
+            var totalLeft = [];
+            totalLeft[0] = 0;
+            for (var i = 0; i < deepList.length-1;++i)
+            {
+                totalLeft[i+1] = 0;
+            }
+            block.parents(".epidemy").find(".cityblock").each(function() {
+                totalLeft[0] += parseInt($( this ).attr("cardsLeft"));
+                var childDeepList = $( this ).attr("cardsLeftDeep").split(",");
+                for (var i = 0; i < childDeepList.length-1;++i)
+                {
+                    totalLeft[1+i] += parseInt(childDeepList[i]);
+                }
+            });
+            block.parents(".epidemy").find(".cityblock").each(function() {
+                var bLeft = $( this ).attr("cardsLeft");
+                var bDeepList = $( this ).attr("cardsLeftDeep").split(",");
+
+                $( this ).find(".probability").text(parseInt(100*bLeft/totalLeft[0])+"%"
+                    +" ["+bLeft+"/"+totalLeft[0]+"]");
+                console.log("asdasd");
+                for (var i = 0; i < bDeepList.length-1;++i)
+                {
+                    $( this ).find(".probability").append(", "
+                        +parseInt(100*parseInt(bDeepList[i])/totalLeft[1+i])+"%"
+                         +" ["+parseInt(bDeepList[i])+"/"+totalLeft[1+i]+"]");
+                }
+            });
+            block.find('.controlAdd').prop('disabled', left == 0);
+            block.find('.controlRem').prop('disabled', drawn == 0);
+        }
+        var testBlockForDeepDig = function (block)
+        {
             var totalLeft = 0;
             block.parents(".epidemy").find(".cityblock").each(function() {
                 totalLeft += parseInt($( this ).attr("cardsLeft"));
             });
-            block.parents(".epidemy").find(".cityblock").each(function() {
-                var bLeft = $( this ).attr("cardsLeft");
-                $( this ).find(".probability").text(parseInt(100*bLeft/totalLeft)+"%");
-            });
-            
+            if (totalLeft == 0)
+            {
+                // console.log("deepTestDigging");
+                block.parents(".epidemy").find(".cityblock").each(function() {
+                    var deepList = $( this ).attr("cardsLeftDeep").split(",");
+
+                    if (deepList.length > 1)
+                    {
+                        $( this ).attr("cardsLeft", deepList[0]);
+                        // console.log("dug"+deepList[0]);
+                        deepList.splice(0,1);
+                        $( this ).attr("cardsLeftDeep", deepList.toString());
+                        redrawBlock($( this ));
+                    }
+                });
+            }
+
         }
         var UndoDraw = function( block ){
             block.attr("cardsLeft", parseInt(block.attr("cardsLeft"))+ 1);
             block.attr("cardsDrawn", parseInt(block.attr("cardsDrawn"))- 1);
-            updateBlock(block);
+            redrawBlock(block);
         }
         var DrawCity = function( block ){
             block.attr("cardsLeft", parseInt(block.attr("cardsLeft"))- 1);
             block.attr("cardsDrawn", parseInt(block.attr("cardsDrawn"))+ 1);
-            updateBlock(block);
+            testBlockForDeepDig(block);
+            redrawBlock(block);
+        }
+
+        var updateOnEpidemyStarted = function( block ){
+            var deepList = block.attr("cardsLeftDeep").split(",");
+            if (deepList.length > 1)
+            {
+                var last = deepList.length - 2;
+                --deepList[last];
+                block.attr("cardsLeftDeep", deepList.toString());
+            }
+            else
+            {
+                block.attr("cardsLeft", parseInt(block.attr("cardsLeft"))- 1);
+            }
+            block.attr("cardsDrawn", parseInt(block.attr("cardsDrawn"))+ 1);
+            redrawBlock(block);
+        }
+        var updateOnEpidemy = function (block)
+        {
+            block.attr("cardsLeftDeep", block.attr("cardsLeft")+","+block.attr("cardsLeftDeep"));
+            block.attr("cardsLeft", parseInt(block.attr("cardsDrawn")));
+            block.attr("cardsDrawn", 0);
+            redrawBlock(block);
+        }
+
+        var epidemyButtonClicked = function(button, no){
+            console.log("clone");
+            var epidemyBlock = button.parents(".cityblock");
+            updateOnEpidemyStarted(epidemyBlock);
+
+            var oldSet = $(".active");
+            var newSet = oldSet.clone();
+            $("body").prepend(newSet);
+            epidemyBlock.find(".cityname").append(" [epidemy]");
+            window.scrollTo(0, 0);
+
+            oldSet.removeClass("active");
+            oldSet.find(".epidemyButton").remove();
+            oldSet.find(".controlRem").remove();
+            oldSet.find(".controlAdd").remove();
+            newSet.find(".epidemyButton").click(function() {
+                epidemyButtonClicked($( this ), no+1 );
+            });
+            newSet.find(".controlRem").click(function() {
+                var block = $( this ).parents(".cityblock");
+                UndoDraw(block);
+            });
+            newSet.find(".controlAdd").click(function() {
+                var block = $( this ).parents(".cityblock");
+                DrawCity(block);
+            });
+            newSet.find(".desc").text("Epidemy "+(no));
+            newSet.find(".cityblock").each(function () {updateOnEpidemy($(this));});
         }
         
         var startingCity = function( cityName, color, cards ){
             var newBlock = `
-            <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0" cityColor="[color]">
+            <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0" cardsLeftDeep="-" cityColor="[color]">
                 <div class="name">
                     <div class="cityname">[CityName]</div>
                 </div>
@@ -40,10 +141,12 @@
                     <div class="probability">0%</div>
                     <button class="controlAdd">Drawn</button>
                     <button class="controlRem">Undo</button>
+                    <button class="epidemyButton">EpidemyDrawn</button>
                 </div>
                 <div class="display">
-                    <div class="cardsDrawn">autogen</div>
                     <div class="cardsLeft">autogen</div>
+                    <div class="cardsLeftDeep">autogen</div>
+                    <div class="cardsDrawn">autogen</div>
                 </div>
             </div>
         `;
@@ -59,10 +162,15 @@
         startingCity("Kairo","black", 1);
         startingCity("asdas","yellow", 4);
         startingCity("costam","yellow", 2);
-         $(".epidemy").append("<div><button>EpidemyDrawn</button></div>");
 
+        $(".epidemy").append("");
+        
+        $(".epidemyButton").click(function() {
+            epidemyButtonClicked($( this ), 1);
+        });
+        
         $(".cityblock").each(function() {
-            updateBlock($( this ));
+            redrawBlock($( this ));
         });
         $(".controlRem").click(function() {
             var block = $( this ).parents(".cityblock");
@@ -98,12 +206,16 @@
         .cityblock[cityColor="yellow"] {
             border-color: gold;
         }
+        .epidemyButton, .controlRem
+        {
+            margin-left: 50px;
+        }
     </style>
 </head>
 <body>
-    <div class="Active">
+    <div class="active">
         <div class="epidemy">
-            <h3>Starting Deck</h3>
+            <h3 class="desc">Starting Deck</h3>
             <!-- autogen -->
         </div>
     </div>
