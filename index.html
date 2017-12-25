@@ -11,6 +11,13 @@
             var drawn = block.attr("cardsDrawn");
             block.find(".cardsDrawn").text(drawn+" cards drawn");
             var deepList = block.attr("cardsLeftDeep").split(",");
+            var bottomCards = left;
+            if (deepList.length > 1)
+            {
+                bottomCards = deepList[deepList.length-2];
+            }
+            console.log(block.find(".cityname").text() + " has "+bottomCards+" cards on bot");
+
             var totalLeft = [];
             totalLeft[0] = 0;
             for (var i = 0; i < deepList.length-1;++i)
@@ -31,7 +38,6 @@
 
                 $( this ).find(".probability").text(parseInt(100*bLeft/totalLeft[0])+"%"
                     +" ["+bLeft+"/"+totalLeft[0]+"]");
-                console.log("asdasd");
                 for (var i = 0; i < bDeepList.length-1;++i)
                 {
                     $( this ).find(".probability").append(", "
@@ -41,6 +47,7 @@
             });
             block.find('.controlAdd').prop('disabled', left == 0);
             block.find('.controlRem').prop('disabled', drawn == 0);
+            block.find(".epidemyButton").prop('disabled', bottomCards == 0);
         }
         var testBlockForDeepDig = function (block)
         {
