@@ -1,0 +1,48 @@
+.header > *, .display > *
+{
+  display: inline-block;
+}
+.control:hover
+{
+    color: #FF0000;
+    cursor: pointer;
+}
+.cityblock
+{
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    margin: 10px;
+    padding: 5px;
+    width: 40%;
+    display: inline-block;
+}
+.cityblock[cityColor="blue"] {
+    border-color: blue;
+}
+.cityblock[cityColor="yellow"] {
+    border-color: gold;
+}
+.epidemyButton, .controlRem, .controlAdd
+{
+    margin-left: 40px;
+}
+.probabilityMain
+{
+    font-weight: bold;
+}
+.probabilityMain[riskType="hi"]
+{
+    color: red;
+}
+.probabilityMain[riskType="low"]
+{
+    color: darkred;
+}
+.probabilityMain[riskType="zero"]
+{
+    color: lightgrey;
+}
+.cardsDrawn {
+    float: right;
+}

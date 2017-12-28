@@ -5,17 +5,20 @@
     $(document).ready(function(){
         var redrawBlock = function( block ){
             var leftDeep = block.attr("cardsLeftDeep");
-            block.find(".cardsLeftDeep").text(leftDeep+" left deep");
             var left = block.attr("cardsLeft");
-            block.find(".cardsLeft").text(left+" cards left");
             var drawn = block.attr("cardsDrawn");
-            block.find(".cardsDrawn").text(drawn+" cards drawn");
             var deepList = block.attr("cardsLeftDeep").split(",");
             var bottomCards = left;
             if (deepList.length > 1)
             {
                 bottomCards = deepList[deepList.length-2];
             }
+            var drawnText = "";
+            if (drawn > 0)
+            {
+                drawnText = "(drawn "+drawn+")";
+            }
+            block.find(".cardsDrawn").text(drawnText);
             console.log(block.find(".cityname").text() + " has "+bottomCards+" cards on bot");
 
             var totalLeft = [];
@@ -35,14 +38,39 @@
             block.parents(".epidemy").find(".cityblock").each(function() {
                 var bLeft = $( this ).attr("cardsLeft");
                 var bDeepList = $( this ).attr("cardsLeftDeep").split(",");
+                var newText = "[["+bLeft+"/"+totalLeft[0]+
+                 " ("+parseInt(100*bLeft/totalLeft[0])+"%)]]";
+                if (bLeft == 0)
+                {
+                    newText = "[-/"+totalLeft[0]+"]";
+                }
+                var riskType = "low";
+                if (bLeft * 8 >  totalLeft[0])
+                {
+                    riskType = "hi";
+                }
+                else if (bLeft == 0)
+                {
+                    riskType = "zero";
+                }
+                $( this ).find(".probabilityMain").attr("riskType", riskType);
 
-                $( this ).find(".probability").text(parseInt(100*bLeft/totalLeft[0])+"%"
-                    +" ["+bLeft+"/"+totalLeft[0]+"]");
+                $( this ).find(".probabilityMain").text(newText);
+                $( this ).find(".probabilityDeep").text("");
                 for (var i = 0; i < bDeepList.length-1;++i)
                 {
-                    $( this ).find(".probability").append(", "
-                        +parseInt(100*parseInt(bDeepList[i])/totalLeft[1+i])+"%"
-                         +" ["+parseInt(bDeepList[i])+"/"+totalLeft[1+i]+"]");
+                    var thisLvCards = parseInt(bDeepList[i]);
+                    var thisLvTotal = parseInt(totalLeft[1+i]);
+                    var thisLvPct  = parseInt(thisLvCards * 100 / thisLvTotal);
+                    var thisLvText = ", <"
+                        +thisLvCards+"/"+thisLvTotal
+                        +" ("+thisLvPct+"%)"
+                        +">";
+                    if (thisLvCards == 0)
+                    {
+                        thisLvText = ", <0/"+thisLvTotal+">";
+                    }
+                    $( this ).find(".probabilityDeep").append(thisLvText);
                 }
             });
             block.find('.controlAdd').prop('disabled', left == 0);
@@ -71,7 +99,6 @@
                     }
                 });
             }
-
         }
         var UndoDraw = function( block ){
             block.attr("cardsLeft", parseInt(block.attr("cardsLeft"))+ 1);
@@ -84,7 +111,6 @@
             testBlockForDeepDig(block);
             redrawBlock(block);
         }
-
         var updateOnEpidemyStarted = function( block ){
             var deepList = block.attr("cardsLeftDeep").split(",");
             if (deepList.length > 1)
@@ -107,7 +133,6 @@
             block.attr("cardsDrawn", 0);
             redrawBlock(block);
         }
-
         var epidemyButtonClicked = function(button, no){
             console.log("clone");
             var epidemyBlock = button.parents(".cityblock");
@@ -137,38 +162,47 @@
             newSet.find(".desc").text("Epidemy "+(no));
             newSet.find(".cityblock").each(function () {updateOnEpidemy($(this));});
         }
-        
         var startingCity = function( cityName, color, cards ){
             var newBlock = `
-            <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0" cardsLeftDeep="-" cityColor="[color]">
-                <div class="name">
-                    <div class="cityname">[CityName]</div>
+                <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0" cardsLeftDeep="-" cityColor="[color]">
+                    <div class="name">
+                        <div class="cityname">[CityName]</div>
+                    </div>
+                    <div class="display">
+                        <div class="probabilityMain">autogen</div>
+                        <div class="probabilityDeep">autogen</div>
+                        <div class="cardsDrawn">autogen</div>
+                    </div>
+                    <div class="header">
+                        <button class="controlAdd">Draw</button>
+                        <button class="controlRem">Undo</button>
+                        <button class="epidemyButton">Drawn in Epidemy</button>
+                    </div>
                 </div>
-                <div class="header">
-                    <div class="probability">0%</div>
-                    <button class="controlAdd">Drawn</button>
-                    <button class="controlRem">Undo</button>
-                    <button class="epidemyButton">EpidemyDrawn</button>
-                </div>
-                <div class="display">
-                    <div class="cardsLeft">autogen</div>
-                    <div class="cardsLeftDeep">autogen</div>
-                    <div class="cardsDrawn">autogen</div>
-                </div>
-            </div>
-        `;
+            `;
             var newBlock = newBlock.replace("[CityName]", cityName);
             newBlock = newBlock.replace("[CardsLeft]", cards);
             newBlock = newBlock.replace("[color]", color);
             $(".epidemy").append(newBlock);
         };
 
-        startingCity("Atlanta","blue", 3);
-        startingCity("Detroid","blue", 1);
-        startingCity("Mumbad","black", 3);
-        startingCity("Kairo","black", 1);
-        startingCity("asdas","yellow", 4);
-        startingCity("costam","yellow", 2);
+        startingCity("Atlanta","blue", 1);
+        startingCity("Chicago","blue", 2);
+        startingCity("Denver","blue",  2);
+        startingCity("London","blue", 3);
+        startingCity("New York","blue", 3);
+        startingCity("San Francisco","blue", 2);
+        startingCity("Washington","blue", 3);
+        startingCity("Buenos Aires","yellow", 2);
+        startingCity("Jacksonville","yellow", 3);
+        startingCity("Lagos","yellow",  3);
+        startingCity("Los Angeles","yellow",  1);
+        startingCity("Lima","yellow", 1);
+        startingCity("Santiago","yellow",1);
+        startingCity("Sao Paulo","yellow",3);
+        startingCity("Cairo","black",3);
+        startingCity("Istambul","black",3);
+        startingCity("Tripoli","black",3);
 
         $(".epidemy").append("");
         
@@ -189,35 +223,7 @@
         });
     });
     </script>
-    <style type="text/css">
-        .header > *, .display > *
-        {
-          display: inline-block;
-        }
-        .control:hover
-        {
-            color: #FF0000;
-            cursor: pointer;
-        }
-        .cityblock
-        {
-            border-color: black;
-            border-width: 2px;
-            border-style: solid;
-            margin: 10px;
-            padding: 5px;
-        }
-        .cityblock[cityColor="blue"] {
-            border-color: blue;
-        }
-        .cityblock[cityColor="yellow"] {
-            border-color: gold;
-        }
-        .epidemyButton, .controlRem
-        {
-            margin-left: 50px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
     <div class="active">
