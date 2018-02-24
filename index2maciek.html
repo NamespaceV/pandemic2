@@ -10,6 +10,25 @@
             }
             return result;
         }
+        var sortDivs = function (a,b){
+            var x = $(a).attr("cardsLeft");
+            var y = $(b).attr("cardsLeft");
+            return  x < y 
+                ? 1 
+                : x == y
+                ? 0
+                : -1;
+        }
+        var sortActiveBlocks = function()
+        {
+            $(".active .cityBlock")
+                .sort(sortDivs)
+                //.detach()
+                .appendTo($(".active .epidemy"));
+        }
+        $(".sortBlocks").click(function() {
+            sortActiveBlocks();
+        });
         var redrawBlock = function( block ){
             var leftDeep = block.attr("cardsLeftDeep");
             var left = block.attr("cardsLeft");
@@ -83,7 +102,8 @@
                     var thisLvCards = parseInt(bDeepList[i]);
                     var thisLvTotal = parseInt(totalLeft[1+i]);
                     var thisLvPct  = parseInt(thisLvCards * 100 / thisLvTotal);
-                    var thisLvText = ", <"
+                    var thisLvText = (i == 0? "":",")
+                        +" <"
                         +thisLvCards+"/"+thisLvTotal
                         +" ("+thisLvPct+"%)"
                         +">";
@@ -193,7 +213,6 @@
             block.attr("cardsAside", parseInt(block.attr("cardsAside"))+ 1);
             redrawBlock(block);
         }
-
         var DrawCity = function( block ){
             block.attr("cardsLeft", parseInt(block.attr("cardsLeft"))- 1);
             block.attr("cardsDrawn", parseInt(block.attr("cardsDrawn"))+ 1);
@@ -248,6 +267,10 @@
                 var block = $( this ).parents(".cityblock");
                 DrawCity(block);
             });
+            newSet.find(".controlAside").click(function() {
+                var block = $( this ).parents(".cityblock");
+                SetAside(block);
+            });
             newSet.find(".desc").text("Epidemy "+(no));
             newSet.find(".cityblock").each(function () {updateOnEpidemy($(this));});
         }
@@ -257,14 +280,12 @@
                 <div class="cityblock" cardsLeft="[CardsLeft]" cardsDrawn="0" cardsAside="[CardsAside]" cardsLeftDeep="-" cityColor="[color]">
                     <div class="name">
                         <div class="cityname">[CityName]</div>
+                        <div class="probabilityMain">autogen</div>
                         <div class="setAside">autogen</div>
                     </div>
                     <div class="display">
-                        <div class="probabilityMain">autogen</div>
                         <div class="probabilityDeep">autogen</div>
                         <div class="cardsDrawn">autogen</div>
-                    </div>
-                    <div class="display">
                         <div class="ev">autogen</div>
                         <div class="distribution">autogen</div>
                     </div>
@@ -291,7 +312,7 @@
         startingCity("San Francisco","blue", 2);
         startingCity("Washington","blue", 3);
         startingCity("Buenos Aires","yellow", 2);
-        startingCity("Jacksonville","yellow", 3);
+        startingCity("Jacksonville","yellow", 3,1);
         startingCity("Lagos","yellow",  3);
         startingCity("Los Angeles","yellow",  1);
         startingCity("Lima","yellow", 1);
@@ -331,12 +352,15 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <label for="movesForProbability">Calculate probability of each city in given number of draws</label>
-    <input type="number" id="movesForProbability" value="2" min="1"/><br/>
+    <div>
+        <button class="sortBlocks">Sort</button>
+        <label for="movesForProbability">Calculate probability of each city in given number of draws</label>
+        <input type="number" id="movesForProbability" value="2" min="1"/>
+    </div>
     <div id="dataContainer">
         <div class="active">
+            <h3 class="desc">Starting Deck</h3>
             <div class="epidemy">
-                <h3 class="desc">Starting Deck</h3>
                 <!-- autogen -->
             </div>
         </div>
